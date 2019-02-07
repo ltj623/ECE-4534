@@ -1,34 +1,26 @@
+// Created by: Samuel Park
+// Last Updated: 2/7/2019
+
 #include "debug.h"
 
 int DEBUG_INIT_CALLED = 0;
 
 void dbgInit(){ 
     // ***Configure the Max32 board for respective outputs***
-    // **Useful resource: http://microchipdeveloper.com/harmony:plib-ports ** 
+    // ** Useful resource: http://microchipdeveloper.com/harmony:plib-ports ** 
     
     // (a) Pin Output Configuration:
-    // -> Set Pins 53, 51, 49, 47, 45, 43, 41, 39 as outputs.
-    PLIB_PORTS_PinDirectionOutputSet(PORTS_ID_0, PORT_CHANNEL_D, PORTS_BIT_POS_5);   //39
-    PLIB_PORTS_PinDirectionOutputSet(PORTS_ID_0, PORT_CHANNEL_B, PORTS_BIT_POS_13);  //41
-    PLIB_PORTS_PinDirectionOutputSet(PORTS_ID_0, PORT_CHANNEL_G, PORTS_BIT_POS_8);   //43
-    PLIB_PORTS_PinDirectionOutputSet(PORTS_ID_0, PORT_CHANNEL_F, PORTS_BIT_POS_0);   //45
-    PLIB_PORTS_PinDirectionOutputSet(PORTS_ID_0, PORT_CHANNEL_D, PORTS_BIT_POS_6);   //47
-    PLIB_PORTS_PinDirectionOutputSet(PORTS_ID_0, PORT_CHANNEL_D, PORTS_BIT_POS_11);  //49
-    PLIB_PORTS_PinDirectionOutputSet(PORTS_ID_0, PORT_CHANNEL_G, PORTS_BIT_POS_8);   //51
-    PLIB_PORTS_PinDirectionOutputSet(PORTS_ID_0, PORT_CHANNEL_G, PORTS_BIT_POS_9);   //53
+    // -> Set Pins 70, 71, 12, 13, 74, 75, 80, 81 as outputs for dbgOutputVal().
+    PLIB_PORTS_DirectionOutputSet(PORTS_ID_0, PORT_CHANNEL_A, 0x00FF);
     
-    // -> Set Pins 30 through 37 as outputs.
-    PLIB_PORTS_PinDirectionOutputSet(PORTS_ID_0, PORT_CHANNEL_E, PORTS_BIT_POS_7);   //30
-    PLIB_PORTS_PinDirectionOutputSet(PORTS_ID_0, PORT_CHANNEL_E, PORTS_BIT_POS_6);   //31
-    PLIB_PORTS_PinDirectionOutputSet(PORTS_ID_0, PORT_CHANNEL_E, PORTS_BIT_POS_5);   //32
-    PLIB_PORTS_PinDirectionOutputSet(PORTS_ID_0, PORT_CHANNEL_E, PORTS_BIT_POS_4);   //33
-    PLIB_PORTS_PinDirectionOutputSet(PORTS_ID_0, PORT_CHANNEL_E, PORTS_BIT_POS_3);   //34
-    PLIB_PORTS_PinDirectionOutputSet(PORTS_ID_0, PORT_CHANNEL_E, PORTS_BIT_POS_2);   //35
-    PLIB_PORTS_PinDirectionOutputSet(PORTS_ID_0, PORT_CHANNEL_E, PORTS_BIT_POS_1);   //36
-    PLIB_PORTS_PinDirectionOutputSet(PORTS_ID_0, PORT_CHANNEL_E, PORTS_BIT_POS_0);   //37
+    // -> Set Pins 30 through 37 as outputs, for dbgOutputLoc().
+    PLIB_PORTS_DirectionOutputSet(PORTS_ID_0, PORT_CHANNEL_E, 0x00FF);
     
     // (b) USART Configuration, set up through Harmony:
     DRV_USART0_Initialize();
+    
+    // Call the initialization only once:
+    DEBUG_INIT_CALLED = 1;
 }
 
 void dbgOutputVal(unsigned int outVal){
@@ -36,22 +28,15 @@ void dbgOutputVal(unsigned int outVal){
     if(outVal > MAXVAL) return;
     
     // Ensure that the necessary pins are set as outputs.
-    if(DEBUG_INIT_CALLED == 0){
-        dbgInit();
-        DEBUG_INIT_CALLED = 1;
-    }
+    if(DEBUG_INIT_CALLED == 0) dbgInit();
     
-    // Toggle pin 53
-    PLIB_PORTS_PinToggle(PORTS_ID_0, PORT_CHANNEL_G, PORTS_BIT_POS_9);
+    // Generation of value that will be output to the board:
+    static int dbgOutputValMSB = 0;
+    dbgOutputValMSB = !dbgOutputValMSB;
+    unsigned char writeVal = (dbgOutputValMSB << 7) | outVal;
     
-    // Write to board pins 51:-2:39.
-    PLIB_PORTS_PinWrite(PORTS_ID_0, PORT_CHANNEL_G, PORTS_BIT_POS_8, (outVal&0x40)>>6);  //51
-    PLIB_PORTS_PinWrite(PORTS_ID_0, PORT_CHANNEL_D, PORTS_BIT_POS_11, (outVal&0x20)>>5); //49
-    PLIB_PORTS_PinWrite(PORTS_ID_0, PORT_CHANNEL_D, PORTS_BIT_POS_6, (outVal&0x10)>>4);  //47
-    PLIB_PORTS_PinWrite(PORTS_ID_0, PORT_CHANNEL_F, PORTS_BIT_POS_0, (outVal&0x08)>>3);  //45
-    PLIB_PORTS_PinWrite(PORTS_ID_0, PORT_CHANNEL_G, PORTS_BIT_POS_8, (outVal&0x04)>>2);  //43
-    PLIB_PORTS_PinWrite(PORTS_ID_0, PORT_CHANNEL_B, PORTS_BIT_POS_13, (outVal&0x02)>>1); //41
-    PLIB_PORTS_PinWrite(PORTS_ID_0, PORT_CHANNEL_D, PORTS_BIT_POS_5, (outVal&0x01));     //39
+    // Write to Pins 70, 71, 12, 13, 74, 75, 80, 81:
+    PLIB_PORTS_Write(PORTS_ID_0, PORT_CHANNEL_A, writeVal); 
 }
 
 void dbgUARTVal(unsigned char outVal){
@@ -61,18 +46,15 @@ void dbgUARTVal(unsigned char outVal){
     // 2) In DigiView, set Baud Rate to 9600, 8 data bits, no parity bits, 
     //    frame length 8 characters.
     // 3) Press OK, and set the radix to ASCII.
-    // 4) To read signals, connect the brown cable to Pin 1, and run DigiView.
+    // 4) To read signals, connect the brown cable to Pin 1, the black 
+    //    cable to ground, and run DigiView.
     //***
     
     // Ensure that the necessary pins are set as outputs.
-    if(DEBUG_INIT_CALLED == 0){
-        dbgInit();
-        DEBUG_INIT_CALLED = 1;
-    }
+    if(DEBUG_INIT_CALLED == 0) dbgInit();
     
     // Single USART Instance set-up through Harmony Configuration.
     DRV_USART0_WriteByte(outVal);
-    
     
     // Note: The hold is to ensure that characters have enough time to be 
     //       transmitted and received successfully.
@@ -85,34 +67,28 @@ void dbgOutputLoc(unsigned int outVal){
     if(outVal > MAXVAL) return;
     
     // Ensure that the necessary pins are set as outputs.
-    if(DEBUG_INIT_CALLED == 0){
-        dbgInit();
-        DEBUG_INIT_CALLED = 1;
-    }
+    if(DEBUG_INIT_CALLED == 0) dbgInit();
     
-    // Toggle pin 37
-    PLIB_PORTS_PinToggle(PORTS_ID_0, PORT_CHANNEL_E, PORTS_BIT_POS_0);
-    
-    // Write to board pins 36-30.
-    PLIB_PORTS_PinWrite(PORTS_ID_0, PORT_CHANNEL_E, PORTS_BIT_POS_1, (outVal&0x40)>>6);  //36
-    PLIB_PORTS_PinWrite(PORTS_ID_0, PORT_CHANNEL_E, PORTS_BIT_POS_2, (outVal&0x20)>>5);  //35
-    PLIB_PORTS_PinWrite(PORTS_ID_0, PORT_CHANNEL_E, PORTS_BIT_POS_3, (outVal&0x10)>>4);  //34
-    PLIB_PORTS_PinWrite(PORTS_ID_0, PORT_CHANNEL_E, PORTS_BIT_POS_4, (outVal&0x08)>>3);  //33
-    PLIB_PORTS_PinWrite(PORTS_ID_0, PORT_CHANNEL_E, PORTS_BIT_POS_5, (outVal&0x04)>>2);  //32
-    PLIB_PORTS_PinWrite(PORTS_ID_0, PORT_CHANNEL_E, PORTS_BIT_POS_6, (outVal&0x02)>>1);  //31
-    PLIB_PORTS_PinWrite(PORTS_ID_0, PORT_CHANNEL_E, PORTS_BIT_POS_7, (outVal&0x01));     //30
+    // Generation of value that will be output to the board:
+    static int dbgOutputLocMSB = 0;
+    dbgOutputLocMSB = !dbgOutputLocMSB;
+    unsigned char writeVal = (dbgOutputLocMSB << 7) | outVal;
+
+    // Write to Pins 30->37:
+    PLIB_PORTS_Write(PORTS_ID_0, PORT_CHANNEL_E, writeVal);
 }
 
 void dbgHaltAll(unsigned int outVal){
-    // -> Set Pins 13 as an output for the LED.
+    // Set Pins 13 as an output for the LED.
     PLIB_PORTS_PinDirectionOutputSet(PORTS_ID_0, PORT_CHANNEL_A, PORTS_BIT_POS_3);
     
-    // -> Set the LED to alert the user that the program has stopped. 
+    // Set the LED to alert the user that the program has stopped. 
     PLIB_PORTS_PinWrite(PORTS_ID_0, PORT_CHANNEL_A, PORTS_BIT_POS_3, 1);
     
-    // -> Call dbgOutputLoc here:
+    // Call dbgOutputLoc here:
     dbgOutputLoc(outVal);
     
+    // While loop related to toggling the LED; runs indefinitely:
     int timer = 0;
     while(1){
         timer = timer + 1;
