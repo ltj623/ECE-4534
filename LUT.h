@@ -1,9 +1,7 @@
-/* 
- * File:   LUT.h
- * Author: ltj623
- *
- * Created on February 3, 2019, 3:34 PM
- */
+// Created by: Tingjie Liu
+// Last Modified by: Samuel Park
+// Last Updated: 2/13/2019
+// ***For the 10-80cm IR sensor***
 
 #ifndef LUT_H
 #define	LUT_H
@@ -12,7 +10,17 @@
 extern "C" {
 #endif
 
-    int LUT( int valADC );
+#include "stdlib.h"
+#include "debug.h"
+#include "sensor_queue.h"
+#include "sensor_state.h"
+#include "Stdint.h"
+#include "peripheral/usart/plib_usart.h"   
+    
+    
+int LUT( int valADC );
+
+void initLUT();
 
 
 #ifdef	__cplusplus

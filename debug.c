@@ -1,42 +1,30 @@
 // Created by: Samuel Park
-// Last Updated: 2/7/2019
+// Last Updated: 2/12/2019
 
 #include "debug.h"
-
-int DEBUG_INIT_CALLED = 0;
 
 void dbgInit(){ 
     // ***Configure the Max32 board for respective outputs***
     // ** Useful resource: http://microchipdeveloper.com/harmony:plib-ports ** 
     
-    // (a) Pin Output Configuration:
+    // Pin Output Configuration:
     // -> Set Pins 70, 71, 12, 13, 74, 75, 80, 81 as outputs for dbgOutputVal().
     PLIB_PORTS_DirectionOutputSet(PORTS_ID_0, PORT_CHANNEL_A, 0x00FF);
     
     // -> Set Pins 30 through 37 as outputs, for dbgOutputLoc().
     PLIB_PORTS_DirectionOutputSet(PORTS_ID_0, PORT_CHANNEL_E, 0x00FF);
-    
-    // (b) USART Configuration, set up through Harmony:
-    DRV_USART0_Initialize();
-    
-    // Call the initialization only once:
-    DEBUG_INIT_CALLED = 1;
 }
 
 void dbgOutputVal(unsigned int outVal){
     // Verify that outVal is either less than or equal to 127.
-    if(outVal > MAXVAL) return;
+    if(outVal > MAXVAL) 
+        return;
     
-    // Ensure that the necessary pins are set as outputs.
-    if(DEBUG_INIT_CALLED == 0) dbgInit();
-    
-    // Generation of value that will be output to the board:
-    static int dbgOutputValMSB = 0;
-    dbgOutputValMSB = !dbgOutputValMSB;
-    unsigned char writeVal = (dbgOutputValMSB << 7) | outVal;
     
     // Write to Pins 70, 71, 12, 13, 74, 75, 80, 81:
-    PLIB_PORTS_Write(PORTS_ID_0, PORT_CHANNEL_A, writeVal); 
+    PLIB_PORTS_Write(PORTS_ID_0, PORT_CHANNEL_A, outVal); 
+    PLIB_PORTS_PinToggle(PORTS_ID_0, PORT_CHANNEL_A, PORTS_BIT_POS_7);
+    
 }
 
 void dbgUARTVal(unsigned char outVal){
@@ -50,9 +38,6 @@ void dbgUARTVal(unsigned char outVal){
     //    cable to ground, and run DigiView.
     //***
     
-    // Ensure that the necessary pins are set as outputs.
-    if(DEBUG_INIT_CALLED == 0) dbgInit();
-    
     // Single USART Instance set-up through Harmony Configuration.
     DRV_USART0_WriteByte(outVal);
     
@@ -64,18 +49,12 @@ void dbgUARTVal(unsigned char outVal){
 
 void dbgOutputLoc(unsigned int outVal){
     // Verify that outVal is either less than or equal to 127.
-    if(outVal > MAXVAL) return;
-    
-    // Ensure that the necessary pins are set as outputs.
-    if(DEBUG_INIT_CALLED == 0) dbgInit();
-    
-    // Generation of value that will be output to the board:
-    static int dbgOutputLocMSB = 0;
-    dbgOutputLocMSB = !dbgOutputLocMSB;
-    unsigned char writeVal = (dbgOutputLocMSB << 7) | outVal;
+    if(outVal > MAXVAL)
+        return;
 
     // Write to Pins 30->37:
-    PLIB_PORTS_Write(PORTS_ID_0, PORT_CHANNEL_E, writeVal);
+    PLIB_PORTS_Write(PORTS_ID_0, PORT_CHANNEL_E, outVal);
+    PLIB_PORTS_PinToggle(PORTS_ID_0, PORT_CHANNEL_E, PORTS_BIT_POS_7);
 }
 
 void dbgHaltAll(unsigned int outVal){

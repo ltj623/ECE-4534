@@ -14,9 +14,8 @@ extern "C" {
     
 #include "Stdint.h"
 
-    int FSM( uint8_t sensor_value, uint8_t *average, uint8_t *state );
-
-
+    
+int FSM( uint8_t sensor_value, uint8_t *average, uint8_t *state );
 
 #ifdef	__cplusplus
 }

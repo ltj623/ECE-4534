@@ -58,7 +58,10 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #include <stdlib.h>
 #include "system_config.h"
 #include "system_definitions.h"
-
+#include "debug.h"
+#include "sensor_queue.h"
+#include "sensor_state.h"
+#include "peripheral/usart/plib_usart.h"
 
 
 // DOM-IGNORE-BEGIN
@@ -86,15 +89,15 @@ extern "C" {
     determine the behavior of the application at various times.
 */
 
-typedef enum
-{
-	/* Application's state machine's initial state. */
-	APP_STATE_INIT=0,
-	APP_STATE_SERVICE_TASKS,
-
-	/* TODO: Define states used by the application state machine. */
-
-} APP_STATES;
+//typedef enum
+//{
+//	/* Application's state machine's initial state. */
+//	APP_STATE_INIT=0,
+//	APP_STATE_SERVICE_TASKS,
+//
+//	/* TODO: Define states used by the application state machine. */
+//
+//} APP_STATES;
 
 
 // *****************************************************************************
@@ -110,15 +113,6 @@ typedef enum
     Application strings and buffers are be defined outside this structure.
  */
 
-/*This is deleted struct*/
-//typedef struct
-//{
-//    /* The application's current state */
-//    APP_STATES state;
-//
-//    /* TODO: Define any additional data used by the application. */
-//
-//} APP_DATA;
 
 
 // *****************************************************************************

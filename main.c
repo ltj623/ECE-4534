@@ -58,7 +58,11 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #include <stddef.h>                     // Defines NULL
 #include <stdbool.h>                    // Defines true
 #include <stdlib.h>                     // Defines EXIT_FAILURE
-#include "system/common/sys_module.h"   // SYS function prototypes
+#include "system/common/sys_module.h"
+#include "debug.h"   // SYS function prototypes
+#include "app.h"
+#include "FreeRTOS.h"
+#include "task.h"
 
 
 // *****************************************************************************
@@ -72,19 +76,13 @@ int main ( void )
     /* Initialize all MPLAB Harmony modules, including application(s). */
     SYS_Initialize ( NULL );
 
-
     while ( true )
     {
         /* Maintain state machines of all polled MPLAB Harmony modules. */
-        //SYS_Tasks ( );
-        
-        dbgOutputVal(16);
-
+        SYS_Tasks ( );
     }
-    
-    
+        
     /* Execution should not come here during normal operation */
-
     return ( EXIT_FAILURE );
 }
 

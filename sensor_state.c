@@ -8,49 +8,50 @@
 
 int FSM( uint8_t sensor_value, uint8_t *average, uint8_t *state )
 {
-    //int calculated_value;
-    
     switch( *state ) {
-        
         case 1:
-            dbgOutputVal(sensor_value); //  output the sensor value each time
+            dbgOutputLoc(STATE_1);  //  0X21
             *average = sensor_value;    //  add the value to the average
-            DRV_USART0_WriteByte(*average); //  write the average to the USART
+            dbgOutputVal(sensor_value);
+            //dbgUARTVal(*average); //  write the average to the USART
             *state = 2; //  Change to the 2nd state
-            //dbgOutputLoc(FSM_state1);
+            //dbgUARTVal('a');
             break;
             
-       case 2:
-            dbgOutputVal(sensor_value);
+        case 2:
+            dbgOutputLoc(STATE_2);  //  0X22
             *average = *average + sensor_value;
-            DRV_USART0_WriteByte(*average);
+            dbgOutputVal(sensor_value);
+            //dbgUARTVal(*average);
             *state = 3;
-            //dbgOutputLoc(FSM_state2);
+            //dbgUARTVal('b');
             break;
             
-       case 3:
-            dbgOutputVal(sensor_value);
+        case 3:
+            dbgOutputLoc(STATE_3);  //  0X23
             *average = *average + sensor_value;
-            DRV_USART0_WriteByte(*average);
+            dbgOutputVal(sensor_value);
+           // dbgUARTVal(*average);
             *state = 4;
-            //dbgOutputLoc(FSM_state3);
+            //dbgUARTVal('c');
             break;
-            
-       case 4:
-            dbgOutputVal(sensor_value);
+        
+        case 4:
+            dbgOutputLoc(STATE_4);  //  0X24
             *average = *average + sensor_value;
-            DRV_USART0_WriteByte(*average);
+            dbgOutputVal(sensor_value);
+           // dbgUARTVal(*average);
             *state = 5;
-            //dbgOutputLoc(FSM_state4);
+            //dbgUARTVal('d');
             break;
             
         case 5:
-            dbgOutputVal(sensor_value);
+            dbgOutputLoc(STATE_5);  //  0X25
             *average = *average + sensor_value;
             *average = *average / 5;
-           // dbgOutputLoc(FSM_state5);
-           // dbgOutputLoc(send_to_USART);
-            DRV_USART0_WriteByte(*average);
+            dbgOutputVal(*average);
+            dbgUARTVal(*average);
+            //dbgUARTVal('e');
             *state = 1;
             break;
             
@@ -60,3 +61,5 @@ int FSM( uint8_t sensor_value, uint8_t *average, uint8_t *state )
     }
     return 0;
 }
+
+

@@ -21,19 +21,20 @@ extern "C" {
 #include "debug.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "stdint.h"
+#include "task.h"
 
-    struct MessageFromSensor{
-        
-        unsigned int SensorVal;
-        char units[20];     //  Structure of Message
-   
-    };  //  Message From Sensor, includes two components: Value and units.
-    
-    int Generate_Sensor_Queue( unsigned int Size_of_Queue );    //  Generate a Sensor Queue with specific size value
-    
-    int Receive_Value_From_Sensot_Queue( struct MessageFromSensor message); //  queue output the value
-    
-    int Send_Value_to_Sensor_Queue(struct MessageFromSensor message, BaseType_t * higher_priority_first);   //  Queue receive value from ISR
+// Message From the sensor, which includes two components: value and units.
+struct MessageFromSensor{
+    unsigned int SensorVal;
+    char units[20];     //  Structure of Message
+};
+
+int Generate_Sensor_Queue( uint8_t Size_of_Queue );    //  Generate a Sensor Queue with specific size value
+
+int Receive_Value_From_Sensor_Queue( struct MessageFromSensor message); //  queue output the value
+
+int Send_Value_to_Sensor_Queue(struct MessageFromSensor message, BaseType_t * higher_priority_first);   //  Queue receive value from ISR
 
 
 #ifdef	__cplusplus

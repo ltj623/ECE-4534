@@ -64,6 +64,8 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 #include "system_definitions.h"
 #include "math.h"
 #include "sensor_queue.h"
+#include <stdint.h>
+#include "LUT.h"
 
 // *****************************************************************************
 // *****************************************************************************
@@ -77,34 +79,26 @@ void IntHandlerDrvUsartInstance0(void)
     DRV_USART_TasksReceive(sysObj.drvUsart0);
 }
  
+void IntHandlerDrvTmrInstance0(void) {
+    dbgOutputLoc(DLOC_AFTER_ENTER_ISR); //  0x14
+    
+    struct MessageFromSensor Message;  // New message for storing the value & units
+    BaseType_t pxHigherPriorityTaskWoken = pdFALSE;
+    
+    // -> ADC Operations:
+    DRV_ADC_Open();    // Enable the ADC
+    DRV_ADC_Start();   // Start the ADC
+    PLIB_ADC_StopInIdleDisable(ADC_ID_1);  //	Continue ADC module operation when the device is in Idle mode
+     
+    BaseType_t Priority = pdFALSE;  // Set the Priority to false
+    BaseType_t *p2 = &Priority;     // Pointer to the priority
+    
+    uint32_t ADC_Val = DRV_ADC_SamplesRead(0); //  Read the ADC value 
+              
+    // -> Determine the distance based on a look-up table.
+    int Distance = LUT(ADC_Val);
 
-void IntHandlerDrvTmrInstance0(void)
-{
-    BaseType_t pxHigherPriorityTaskWoken=pdFALSE;
-    
-     DRV_ADC_Open();    //  Enable the ADC
-     
-     DRV_ADC_Start();   //  Start the ADC
-     
-     PLIB_ADC_StopInIdleDisable(ADC_ID_1);  //	Continue ADC module operation when the device is in Idle mode
-    
-     struct MessageFromSensor Message;  //  new message to store the value and unit
-     
-    BaseType_t Priority = pdFALSE;  //  set the Priority to false
-    
-    BaseType_t *p2 = &Priority; // pointing to the priority
-     
-     uint32_t ADC_Val = DRV_ADC_SamplesRead(0); //  Read the ADC value
-     
-     
-     /* Calculate the sensor value to distance */
-     /* Searched online by GOOGLE*/
-    /////////////////Look Up Table  ------  Setting//////////////////////////
-     
-     // IN LUT.c FILE//
-     
-    /////////////////Look Up Table  ------ Finish Setting////////////////////////// 
-     
+    // -> Add centimeter units to the message:
     Message.units[0] = 'C';
     Message.units[1] = 'e';
     Message.units[2] = 'n';
@@ -115,19 +109,21 @@ void IntHandlerDrvTmrInstance0(void)
     Message.units[7] = 't';
     Message.units[8] = 'e';
     Message.units[9] = 'r';
-    Message.units[10] = 's';    //  The unit of message has been set to cm
+    Message.units[10] = 's';
+
+    Message.SensorVal = Distance;
+      
+    dbgOutputLoc(DLOC_BEFORE_SENDING_ISR_QUEUE);    //  0x12
+    // -> Send the value to the queue
+    int result = Send_Value_to_Sensor_Queue(Message, p2);
+    dbgOutputLoc(DLOC_AFTER_SENDING_ISR_QUEUE); //   0x15
+
+    // -> Clear the interrupt flag for the ISR
+    PLIB_INT_SourceFlagClear(INT_ID_0,INT_SOURCE_TIMER_2);
     
-    int Distance = LUT(ADC_Val);    //  Replace value in LUT
-    
-    Message.SensorVal = Distance;   //  Give the value to Queue
-    
-    int result = Send_Value_to_Sensor_Queue(Message, p2);   //  send the value to the queue
-    
-    PLIB_INT_SourceFlagClear(INT_ID_0,INT_SOURCE_TIMER_2);  //clear Flag for ISR
+    dbgOutputLoc(DLOC_BEFORE_LEAVE_ISR);    //  0x11
     
     portEND_SWITCHING_ISR(pxHigherPriorityTaskWoken);
-    
-    
 }
  /*******************************************************************************
  End of File

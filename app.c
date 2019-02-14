@@ -54,55 +54,6 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 // *****************************************************************************
 
 #include "app.h"
-#include "debug.h"
-#include "sensor_queue.h"
-#include "sensor_state.h"
-
-// *****************************************************************************
-// *****************************************************************************
-// Section: Global Data Definitions
-// *****************************************************************************
-// *****************************************************************************
-
-// *****************************************************************************
-/* Application Data
-
-  Summary:
-    Holds application data
-
-  Description:
-    This structure holds the application's data.
-
-  Remarks:
-    This structure should be initialized by the APP_Initialize function.
-    
-    Application strings and buffers are be defined outside this structure.
-*/
-
-
-/*THIS IS DELETED FOR M1*/
-//APP_DATA appData;
-/*THIS IS DELETED FOR M1*/
-
-// *****************************************************************************
-// *****************************************************************************
-// Section: Application Callback Functions
-// *****************************************************************************
-// *****************************************************************************
-
-/* TODO:  Add any necessary callback functions.
-*/
-
-// *****************************************************************************
-// *****************************************************************************
-// Section: Application Local Functions
-// *****************************************************************************
-// *****************************************************************************
-
-
-/* TODO:  Add any necessary local functions.
-*/
-
 
 // *****************************************************************************
 // *****************************************************************************
@@ -120,21 +71,14 @@ SUBSTITUTE GOODS, TECHNOLOGY, SERVICES, OR ANY CLAIMS BY THIRD PARTIES
 
 void APP_Initialize ( void )
 {
-    /* Place the App state machine in its initial state. */
-    
-    /*THIS IS DELETED FOR M1*/
-    //appData.state = APP_STATE_INIT;
-    /*THIS IS DELETED FOR M1*/
-    
-    /* TODO: Initialize your application's state machine and other
-     * parameters.
-     */
+
+    dbgInit();
+    initLUT();  //*******ADDED THIS TINGJIE********* -Sam
     
     int result = Generate_Sensor_Queue(10); 
     if (result !=0)
     {
         dbgHaltAll(result);
-        //stopEverything(12,result);
         
     }
 }
@@ -150,61 +94,24 @@ void APP_Initialize ( void )
 
 void APP_Tasks ( void )
 {
-    //dbgOutputLoc(initiate_task);
-
     PLIB_INT_SourceEnable(INT_ID_0, INT_SOURCE_TIMER_2); 
-    DRV_TMR0_Start();   //  start the timer
+    DRV_TMR0_Start();  // Start the timer
     
-    struct MessageFromSensor message;   //  Initialize a meesage queue
+    struct MessageFromSensor message;   //  Initialize a message queue
     uint8_t state = 1;  //  Initialize the state to 1
     uint8_t avg = 0;    //  Initialize the average value to 0
     
-    //dbgOutputLoc(entering_loop);
     while(1) {
-        //dbgOutputLoc(before_queuing_send);
-        
-        int result = Receive_Value_From_Sensot_Queue(message);  //  receive the distance value from Message Queue
+        dbgOutputLoc(DLOC_BEFORE_RECEIVE_ISR_QUEUE);    //  0x13
+        int result = Receive_Value_From_Sensor_Queue(message);  //  receive the distance value from Message Queue
+        dbgOutputLoc(DLOC_AFTER_RECEIVE_ISR_QUEUE); //  0x16
         int temp = result;   //  copy the value to a temp variable
         
-        //dbgOutputLoc(message.sensorValue);
-        result = FSM(temp, &avg, &state);   //  running the FSM to store the value
+        if(temp != -1){
+            result = FSM(temp, &avg, &state);   //  running the FSM to store the value
+        }
     }
-    /* Check the application's current state. */
-    
-/*switch case that should be deleted*/ 
-//    switch ( appData.state )
-//    {
-//        /* Application's initial state. */
-//        case APP_STATE_INIT:
-//        {
-//            bool appInitialized = true;
-//       
-//        
-//            if (appInitialized)
-//            {
-//            
-//                appData.state = APP_STATE_SERVICE_TASKS;
-//            }
-//            break;
-//        }
-//
-//        case APP_STATE_SERVICE_TASKS:
-//        {
-//        
-//            break;
-//        }
-//
-//        /* TODO: implement your application state machine.*/
-//        
-//
-//        /* The default state should never be executed. */
-//        default:
-//        {
-//            /* TODO: Handle error in application's state machine. */
-//            break;
-//        }
-//    }
-        
+
 }
 
  
